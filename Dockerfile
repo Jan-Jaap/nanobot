@@ -18,7 +18,8 @@ WORKDIR /app
 COPY pyproject.toml README.md LICENSE ./
 RUN mkdir -p nanobot bridge && touch nanobot/__init__.py && \
     uv pip install --system --no-cache . && \
-    rm -rf nanobot bridge
+    rm -rf nanobot bridge && \
+    npx playwright install-deps chromium 
 
 # Copy the full source and install
 COPY nanobot/ nanobot/
@@ -30,7 +31,6 @@ WORKDIR /app/bridge
 RUN git config --global --add url."https://github.com/".insteadOf ssh://git@github.com/ && \
     git config --global --add url."https://github.com/".insteadOf git@github.com: && \
     npm install && \
-    npx playwright install chromium --with-deps && \
     npm run build
 WORKDIR /app
 
