@@ -31,7 +31,11 @@ def empty_tool_result_message(tool_name: str) -> str:
 
 
 def ensure_nonempty_tool_result(tool_name: str, content: Any) -> Any:
-    """Replace semantically empty tool results with a short marker string."""
+    """Replace semantically empty tool results with a short marker string.
+
+    Preserves media content blocks (e.g., images, audio) that LLM providers
+    can process, rather than treating them as empty.
+    """
     if content is None:
         return empty_tool_result_message(tool_name)
     if isinstance(content, str) and not content.strip():
@@ -39,6 +43,12 @@ def ensure_nonempty_tool_result(tool_name: str, content: Any) -> Any:
     if isinstance(content, list):
         if not content:
             return empty_tool_result_message(tool_name)
+        has_media_block = any(
+            isinstance(block, dict) and block.get("type") in ("image_url", "audio_url")
+            for block in content
+        )
+        if has_media_block:
+            return content
         text_payload = stringify_text_blocks(content)
         if text_payload is not None and not text_payload.strip():
             return empty_tool_result_message(tool_name)
